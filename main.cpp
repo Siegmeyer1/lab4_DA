@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <utility>
+#include <sstream>
 #include "z_function.hpp"
 #include "r_function.hpp"
 #include "n_function.hpp"
@@ -9,11 +11,27 @@
 #include "l_big_function.hpp"
 
 int main() {
-    std::string pattern, str;
-    std::cout << "Input pattern: ";
+    std::vector<std::pair<int, int>> answer;
+    std::string pattern;
+    std::vector<std::string> text;
+
     std::cin >> pattern;
-    std::cout << "Input text: ";
-    std::cin >> str;
+    
+    int lineCnt = 1;
+    int wordCnt = 1;
+    
+    std::string input, token;
+
+    while (std::getline(std::cin, input)) {
+        std::stringstream textSS(input);
+
+        while (textSS >> token) {
+            answer.push_back(std::make_pair(lineCnt, wordCnt));
+            ++wordCnt;
+        }
+        ++lineCnt;
+        wordCnt = 1;
+    }
 
     std::vector<int> N(pattern.size());
     NFunction(pattern, N);
