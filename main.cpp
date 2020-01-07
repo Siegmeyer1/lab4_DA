@@ -4,74 +4,52 @@
 #include <algorithm>
 #include <utility>
 #include <sstream>
-#include "z_function.hpp"
-#include "r_function.hpp"
-#include "n_function.hpp"
-#include "l_little_function.hpp"
-#include "l_big_function.hpp"
+#include <cctype>
+#include "preprocessing.hpp"
+#include "search.hpp"
 
 int main() {
-    std::vector<std::pair<int, int>> answer;
-    std::string pattern;
-    std::vector<std::string> text;
+    std::string pattern, input;
+    std::getline(std::cin, pattern);
+    std::for_each(pattern.begin(), pattern.end(), [](char &c) {
+        c = std::tolower(c);
+    });
+    std::stringstream patternSS(pattern);
+    int wordsInPattern = 0;
+    while (patternSS >> input) {
+        wordsInPattern++;
+    }  
+    std::string text, word;
+    std::vector<std::vector<int>> information;
 
-    std::cin >> pattern;
-    
-    int lineCnt = 1;
-    int wordCnt = 1;
-    
-    std::string input, token;
-
+    int lineCnt = 1, wordCnt = 1, endOfWord = 0;
     while (std::getline(std::cin, input)) {
-        std::stringstream textSS(input);
-
-        while (textSS >> token) {
-            answer.push_back(std::make_pair(lineCnt, wordCnt));
-            ++wordCnt;
+        if (lineCnt != 1) {
+            text += " ";
         }
-        ++lineCnt;
+        std::stringstream inputSS(input);
+        while (inputSS >> word) {
+            endOfWord += word.size() - 1;
+            information.push_back(std::vector<int>{lineCnt, wordCnt, endOfWord});
+            std::for_each(word.begin(), word.end(), [](char &c) {
+                c = std::tolower(c);
+            });
+            text += word + " ";
+            endOfWord += 2;
+            wordCnt++;
+        }
+        text.pop_back();
+        lineCnt++;
         wordCnt = 1;
     }
 
-    std::vector<int> N(pattern.size());
-    NFunction(pattern, N);
-    std::vector<int> L = LBigFunction(pattern, N);
-    std::vector<int> l = LLittleFunction(pattern, N);
-    std::vector<std::vector<int>> R(26);
-    RFunction(pattern, R);
+    std::vector<int> nFunction(pattern.size()), lBigFunction, lLittleFunction;
+    std::vector<std::vector<int>> rFunction(27);
 
-    int k = pattern.size() - 1;
-    while (k < str.size()) {
-        int i = pattern.size() - 1;
-        int h = k;
-        while ((i >= 0) && (pattern[i] == str[h])) {
-            i--;
-            h--;
-        } 
-        if (i == -1) {
-            std::cout << "Match found!!!\n";
-            k = k + pattern.size() - l[2];
-        } else {
-            int maxSuff;
-            if (i == pattern.size() - 1) {
-                maxSuff = 1;
-            } else {
-                if (L[i + 1] > 0) {
-                    maxSuff = pattern.size() - L[i + 1] - 1;
-                } else {
-                    maxSuff = pattern.size() - l[i + 1] - 1;
-                }
-            }
-            int maxSymb = pattern.size();
-            for (int j = 0; j < R[str[h] - 97].size(); j++) {
-                if (R[str[h] - 97][j] < i) {
-                    maxSymb = std::max(1, i - R[str[h] - 97][j]);
-                    break;
-                }
-            }
-            k += std::max(maxSuff, maxSymb);
-        }
-    }
+    Preprocessing(nFunction, lBigFunction, lLittleFunction, rFunction, pattern);
+    Search(text, pattern, information, lBigFunction, lLittleFunction, rFunction , wordsInPattern);
+
+    std::cout << pattern << "\n" << text << "\n";
     
     return 0;
 }
